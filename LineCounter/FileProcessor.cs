@@ -1,4 +1,5 @@
 ﻿using CodeAnalysis;
+using CodeAnalysis.SmallScanners;
 
 namespace LineCounter;
 
@@ -16,13 +17,21 @@ internal static class FileProcessor
         // Ideally, create a version that strips out comment lines
         ClearedLines clearedLines = new CommentLineAnalyzer(false).GetRegularCode(lines);
 
-        IdentifierAnalyzer identifierAnalyzer = new(filename, clearedLines);
-        identifierAnalyzer.Analyze();
+        DelayedFeedbackAnalyzers(filename, clearedLines);
 
         Console.WriteLine("---");
         AnalyzeMethodLength(filename, clearedLines);
         Console.WriteLine();
         return report;
+    }
+
+    private static void DelayedFeedbackAnalyzers(string filename, ClearedLines clearedLines)
+    {
+        IdentifierAnalyzer identifierAnalyzer = new(filename, clearedLines);
+        identifierAnalyzer.Analyze();
+
+        MrsMalaprop malaprop = new(filename, clearedLines);
+        malaprop.Analyze();
     }
 
     private static void AnalyzeMethodLength(string filename, ClearedLines clearedLines)
