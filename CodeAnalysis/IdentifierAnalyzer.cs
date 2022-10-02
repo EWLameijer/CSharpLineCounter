@@ -27,7 +27,7 @@ public class IdentifierAnalyzer
             if (line.StartsWith("{")) _indentationLevel++;
             else if (line.StartsWith("}")) _indentationLevel--;
             else if (_indentationLevel >= MethodLevel) FindTypingErrors(line);
-            else i = ProcessNonMethodLine(i);
+            else if (_indentationLevel > 0) i = ProcessNonMethodLine(i);
         }
     }
 
@@ -58,7 +58,7 @@ public class IdentifierAnalyzer
         {
             char ch = line[i];
             UpdateCapitalData(capitalData, i, ch);
-            if (ch == '=') break;
+            if (ch == '=' || ch == '[') break; // against annotations
             if (ch == '(' && capitalData.CapitalUsed)
             {
                 return (true, i);
@@ -82,7 +82,8 @@ public class IdentifierAnalyzer
     }
 
     private static bool IsEndOfMethodHeader(string currentLine) =>
-        currentLine.EndsWith(")") || currentLine.EndsWith("=>") || currentLine.EndsWith(";");
+        currentLine.EndsWith(")") || currentLine.EndsWith("=>")
+        || currentLine.EndsWith(";") || currentLine.Contains("//");
 
     private void CheckParametersPerLine(int lineIndex, int i)
     {
@@ -91,7 +92,7 @@ public class IdentifierAnalyzer
         {
             if (param.Contains("=>")) return;
             List<string> splitParams = param.Split(' ').ToList();
-            string parameterName = splitParams[^1];
+            string parameterName = splitParams[^1].Trim(')');
             if (splitParams.Count >= 2 && !char.IsLower(parameterName[0]) && parameterName != "=>")
                 WarningRepo.Warnings.Add($"Misnamed parameter in {_filename}: {parameterName}");
         }

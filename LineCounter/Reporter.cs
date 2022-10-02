@@ -28,7 +28,7 @@ public class Reporter
 
     private void ReportData(string title)
     {
-        Console.WriteLine(title);
+        Console.WriteLine("**" + title);
         Console.WriteLine($"Total lines:         {totalLines}");
         Console.WriteLine($"Using dir+namespace: {openingLines}");
         Console.WriteLine($"Lines of comments:   {totalCommentLines}");
@@ -47,5 +47,6 @@ public class Reporter
         Console.WriteLine();
         Console.WriteLine("WARNINGS: please check and possibly address these!");
         foreach (string line in WarningRepo.Warnings) Console.WriteLine(line);
+        Console.WriteLine("--END OF WARNINGS");
     }
 }

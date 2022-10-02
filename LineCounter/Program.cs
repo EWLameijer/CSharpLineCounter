@@ -1,6 +1,6 @@
 ﻿using LineCounter;
 
-Console.Write("Geef de naam van de directory waarvan je de code-regels wilt tellen:");
+Console.Write("Geef de naam van de directory waarvan je de code-regels wilt tellen: ");
 string pathname = Console.ReadLine()!;
 
 List<string> csFiles = Directory.GetFiles(pathname, "*.cs", SearchOption.AllDirectories).ToList();

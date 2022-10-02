@@ -9,12 +9,14 @@ internal static class FileProcessor
         string filename = Path.GetFileName(filepath);
         Analyzer analyzer = new(filepath);
 
-        AnalyzeMethodLength(filename, lines);
+        // Ideally, create a version that strips out comment lines
 
         IdentifierAnalyzer identifierAnalyzer = new(filename, lines);
         identifierAnalyzer.Analyze();
         LineReport report = analyzer.Analyze();
         new Reporter().Report(filename, report);
+        Console.WriteLine("---");
+        AnalyzeMethodLength(filename, lines);
         Console.WriteLine();
         return report;
     }
