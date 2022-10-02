@@ -6,7 +6,7 @@ Check problems in code!
 
 1? badly named fields?
 2? methods or properties whose names start with lowercase?
-3? Decimal/String/Char/Int32 instead of normal notation?
+3? too long lines?
 
 
 
