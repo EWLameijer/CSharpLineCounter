@@ -110,10 +110,27 @@ public class IdentifierAnalyzer
 
     private void FindTypingErrors(string line)
     {
-        List<string> lineElements = line.Split(' ').ToList();
+        int endIndex = GetPartUntilStringStartIfAny(line);
+        if (endIndex < 1) return;
+        List<string> lineElements = line[..endIndex].Split(' ').ToList();
         int assignIndex = lineElements.FindIndex(le => le == "=");
         if (assignIndex == 2 && !char.IsLower(lineElements[1][0]))
             WarningRepo.Warnings.Add($"Wrong identifier case: {_filename}: {lineElements[1]}.");
+    }
+
+    private static int GetPartUntilStringStartIfAny(string line)
+    {
+        int endIndex = line.Length;
+        for (int i = 0; i < line.Length; i++)
+        {
+            if (line[i] == '"') // prevent SQL strings problems
+            {
+                endIndex = i - 1;
+                break;
+            }
+        }
+
+        return endIndex;
     }
 }
 

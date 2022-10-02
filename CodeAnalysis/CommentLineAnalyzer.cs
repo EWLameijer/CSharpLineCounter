@@ -72,6 +72,12 @@ public class CommentLineAnalyzer
     public List<string> GetRegularCode(List<string> lines)
     {
         CountCommentLines(lines);
-        return lines.Where((line, index) => !_commentLineIndices.Contains(index)).ToList();
+        List<int> attributeLineIndices = new();
+        for (int i = 0; i < lines.Count; i++)
+        {
+            if (lines[i].StartsWith("[")) attributeLineIndices.Add(i);
+        }
+        attributeLineIndices.AddRange(_commentLineIndices);
+        return lines.Where((line, index) => !attributeLineIndices.Contains(index)).ToList();
     }
 }
