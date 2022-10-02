@@ -36,4 +36,16 @@ public class Reporter
         Console.WriteLine($"Lines with braces:   {braceLines}");
         Console.WriteLine($"Lines of code:       {codeLines}");
     }
+
+    public static void FinalReport(List<LineReport> reports)
+    {
+        Console.WriteLine();
+        new Reporter().Report("TOTAL:", reports.ToArray());
+        Console.WriteLine();
+        Console.WriteLine("Comments - check for commented-out code!");
+        foreach (string line in WarningRepo.Comments) Console.WriteLine(line);
+        Console.WriteLine();
+        Console.WriteLine("WARNINGS: please check and possibly address these!");
+        foreach (string line in WarningRepo.Warnings) Console.WriteLine(line);
+    }
 }

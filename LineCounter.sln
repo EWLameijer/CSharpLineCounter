@@ -5,7 +5,7 @@ VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LineCounter", "LineCounter\LineCounter.csproj", "{0B08C088-651F-4F54-9426-5DF253E4CF24}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysis", "CodeAnalysis\CodeAnalysis.csproj", "{E331068A-F503-48B6-A869-A6626B7BB69D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeAnalysis", "CodeAnalysis\CodeAnalysis.csproj", "{E331068A-F503-48B6-A869-A6626B7BB69D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

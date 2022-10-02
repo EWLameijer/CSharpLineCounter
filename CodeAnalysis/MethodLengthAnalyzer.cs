@@ -2,35 +2,30 @@
 
 namespace LineCounter;
 
-internal class MethodLengthAnalyzer
+public class MethodLengthAnalyzer
 {
     private readonly List<string> _lines;
     private int indentationLevel = 0;
     private int? lastBlankLineIndex = null;
     private int? methodStartIndex = null;
     private readonly string _filename;
-    private readonly bool _isFileScoped;
+    private readonly FileCharacteristics _characteristics;
 
-    public MethodLengthAnalyzer(string filename)
+    private int MethodLevel() => _characteristics.MethodLevel - 1;
+
+    public MethodLengthAnalyzer(string filename, List<string> lines)
     {
-        _lines = File.OpenText(filename).ReadToEnd().
-            Split("\n").Select(line => line.Trim()).ToList();
-        _filename = Path.GetFileName(filename);
-        _isFileScoped = false;
-        foreach (string line in _lines)
-        {
-            if (line.StartsWith("namespace") && line.EndsWith(";")) _isFileScoped = true;
-        }
+        _filename = filename;
+        _lines = lines;
+        _characteristics = new FileCharacteristics(lines);
     }
-
-    private int MethodIndentationLevel() => _isFileScoped ? 1 : 2;
 
     public void Analyze()
     {
         for (int i = 0; i < _lines.Count; i++)
         {
             string line = _lines[i];
-            if (line.Length == 0 && indentationLevel == MethodIndentationLevel()) lastBlankLineIndex = i;
+            if (line.Length == 0 && indentationLevel == MethodLevel()) lastBlankLineIndex = i;
             else
             {
                 HandleBraces(i, line);
@@ -53,14 +48,14 @@ internal class MethodLengthAnalyzer
     private void HandleOpeningBrace(int i)
     {
         indentationLevel++;
-        if (indentationLevel == MethodIndentationLevel()) lastBlankLineIndex = i;
-        else if (indentationLevel == MethodIndentationLevel() + 1) methodStartIndex = i;
+        if (indentationLevel == MethodLevel()) lastBlankLineIndex = i;
+        else if (indentationLevel == MethodLevel() + 1) methodStartIndex = i;
     }
 
     private void HandleClosingBrace(int i)
     {
         indentationLevel--;
-        if (indentationLevel == MethodIndentationLevel())
+        if (indentationLevel == MethodLevel())
         {
             string methodName = GetMethodName(lastBlankLineIndex);
             if (methodName != "") AnalyzeCode(methodName, methodStartIndex, i);
@@ -107,7 +102,7 @@ internal class MethodLengthAnalyzer
                 new ArgumentNullException(nameof(lastBlankLineIndex));
         int correctLineIndex = (int)lastBlankLineIndex;
 
-        return new CommentLineAnalyzer(false).FindFirstNonCommentLine(_lines, correctLineIndex);
+        return new CommentLineAnalyzer(false).FindFirstNonCommentLine(_lines, correctLineIndex).line;
     }
 
     private void AnalyzeCode(string methodName, int? startIndex, int endIndex)

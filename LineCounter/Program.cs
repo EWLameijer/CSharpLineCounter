@@ -14,6 +14,4 @@ foreach (string relevantFileName in relevantFileNames)
     LineReport newReport = FileProcessor.Process(relevantFileName);
     reports.Add(newReport);
 }
-Console.WriteLine();
-new Reporter().Report("TOTAL:", reports.ToArray());
-foreach (string line in WarningRepo.Warnings) Console.WriteLine(line);
+Reporter.FinalReport(reports);

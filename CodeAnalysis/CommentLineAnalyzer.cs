@@ -13,7 +13,7 @@ public class CommentLineAnalyzer
         _reportCommentLines = reportCommentLines;
     }
 
-    public string FindFirstNonCommentLine(List<string> lines, int startIndex)
+    public (string line, int index) FindFirstNonCommentLine(List<string> lines, int startIndex)
     {
         int index = startIndex;
         bool isCommentLine = false;
@@ -22,7 +22,7 @@ public class CommentLineAnalyzer
             index++;
             isCommentLine = UpdateCommentLineCount(lines[index], isCommentLine);
         } while (isCommentLine);
-        return lines[index];
+        return (lines[index], index);
     }
 
     public (int lineCommCounts, int multiLineCommCounts) CountCommentLines(List<string> lines)
@@ -57,12 +57,12 @@ public class CommentLineAnalyzer
     private void RegisterLineComment(string line)
     {
         _initCommentLines++;
-        if (_reportCommentLines) WarningRepo.Warnings.Add(line);
+        if (_reportCommentLines) WarningRepo.Comments.Add(line);
     }
 
     private void RegisterMultilineComment(string line)
     {
         _multiLineCommentLines++;
-        if (_reportCommentLines) WarningRepo.Warnings.Add(line);
+        if (_reportCommentLines) WarningRepo.Comments.Add(line);
     }
 }
