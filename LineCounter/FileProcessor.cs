@@ -1,4 +1,6 @@
-﻿namespace LineCounter;
+﻿using CodeAnalysis;
+
+namespace LineCounter;
 
 internal static class FileProcessor
 {
@@ -8,15 +10,17 @@ internal static class FileProcessor
             Split("\n").Select(line => line.Trim()).ToList();
         string filename = Path.GetFileName(filepath);
         Analyzer analyzer = new(filepath);
-
-        // Ideally, create a version that strips out comment lines
-
-        IdentifierAnalyzer identifierAnalyzer = new(filename, lines);
-        identifierAnalyzer.Analyze();
         LineReport report = analyzer.Analyze();
         new Reporter().Report(filename, report);
+
+        // Ideally, create a version that strips out comment lines
+        List<string> commentLessLines = new CommentLineAnalyzer(false).GetRegularCode(lines);
+
+        IdentifierAnalyzer identifierAnalyzer = new(filename, commentLessLines);
+        identifierAnalyzer.Analyze();
+
         Console.WriteLine("---");
-        AnalyzeMethodLength(filename, lines);
+        AnalyzeMethodLength(filename, commentLessLines);
         Console.WriteLine();
         return report;
     }

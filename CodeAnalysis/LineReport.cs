@@ -24,12 +24,9 @@ public class LineReport
     private bool IsRawStartingLine(string line) =>
         line.StartsWith("using") || line.StartsWith("namespace");
 
-    private readonly bool _reportCommentLines;
-
     public LineReport(List<string> lines, bool reportCommentLines = true)
     {
         TotalLines = lines.Count;
-        _reportCommentLines = reportCommentLines;
 
         List<string> trimmedLines = lines.Select(line => line.Trim()).ToList();
         List<string> usingPlusBlankLines = trimmedLines.

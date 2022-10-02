@@ -1,6 +1,8 @@
 ﻿Bugs/features
 
-// project 1: hunt wrongly cased names!
+Check problems in code!
+
+1? 
 
 
 

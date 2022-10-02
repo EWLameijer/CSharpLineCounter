@@ -87,7 +87,7 @@ public class IdentifierAnalyzer
 
     private void CheckParametersPerLine(int lineIndex, int i)
     {
-        List<string> bulkParams = _lines[lineIndex][i..].Split(',').ToList();
+        List<string> bulkParams = new ParameterParser().GetParameters(_lines[lineIndex][(i + 1)..]).ToList();
         foreach (string param in bulkParams)
         {
             if (param.Contains("=>")) return;
@@ -114,5 +114,35 @@ public class IdentifierAnalyzer
         int assignIndex = lineElements.FindIndex(le => le == "=");
         if (assignIndex == 2 && !char.IsLower(lineElements[1][0]))
             WarningRepo.Warnings.Add($"Wrong identifier case: {_filename}: {lineElements[1]}.");
+    }
+}
+
+internal class ParameterParser
+{
+    private int _depth = 0;
+    private int _startOfParam = 0;
+
+    // against (Action<string, Dictionary<string, string>> callback)
+    internal IEnumerable<string> GetParameters(string v)
+    {
+        for (int i = 0; i < v.Length; i++)
+        {
+            char ch = v[i];
+            _depth = UpdateDepth(_depth, ch);
+            if (_depth == -1) break;
+            if (ch == ',' && _depth == 0)
+            {
+                yield return v[_startOfParam..i];
+                _startOfParam = i + 1;
+            }
+        }
+        yield return v[_startOfParam..];
+    }
+
+    private static int UpdateDepth(int depth, char ch)
+    {
+        if (ch == '<' || ch == '(') depth++;
+        if (ch == '>' || ch == ')') depth--;
+        return depth;
     }
 }
