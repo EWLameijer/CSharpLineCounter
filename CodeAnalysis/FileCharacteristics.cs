@@ -4,8 +4,9 @@ internal class FileCharacteristics
 {
     public int MethodLevel { get; init; }
 
-    public FileCharacteristics(List<string> lines)
+    public FileCharacteristics(ClearedLines clearedLines)
     {
+        IReadOnlyList<string> lines = clearedLines.Lines;
         bool isTopLevelStatement = !lines.Any(line => line.StartsWith("namespace"));
         if (isTopLevelStatement) MethodLevel = 1;
         else

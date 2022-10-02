@@ -14,7 +14,7 @@ public class CommentLineAnalyzer
         _reportCommentLines = reportCommentLines;
     }
 
-    public (string line, int index) FindFirstNonCommentLine(List<string> lines, int startIndex)
+    public (string line, int index) FindFirstNonCommentLine(IReadOnlyList<string> lines, int startIndex)
     {
         int index = startIndex;
         bool isCommentLine = false;
@@ -69,15 +69,23 @@ public class CommentLineAnalyzer
         if (_reportCommentLines) WarningRepo.Comments.Add(line);
     }
 
-    public List<string> GetRegularCode(List<string> lines)
+    public ClearedLines GetRegularCode(List<string> lines)
     {
         CountCommentLines(lines);
-        List<int> attributeLineIndices = new();
+        List<int> linesToFilterOut = new();
         for (int i = 0; i < lines.Count; i++)
         {
-            if (lines[i].StartsWith("[")) attributeLineIndices.Add(i);
+            if (lines[i].StartsWith("[")) linesToFilterOut.Add(i);
         }
-        attributeLineIndices.AddRange(_commentLineIndices);
-        return lines.Where((line, index) => !attributeLineIndices.Contains(index)).ToList();
+        linesToFilterOut.AddRange(_commentLineIndices);
+        return new ClearedLines
+        {
+            Lines = lines.Where((line, index) => !linesToFilterOut.Contains(index)).ToList()
+        };
     }
+}
+
+public class ClearedLines
+{
+    public IReadOnlyList<string> Lines { get; init; } = null!;
 }

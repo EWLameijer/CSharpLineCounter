@@ -58,7 +58,8 @@ public class Add
     {
         // arrange
         List<string> lines = test1.Split("\n").Select(line => line.Trim()).ToList();
-        IdentifierAnalyzer sut = new("", lines);
+        ClearedLines clearedLines = new CommentLineAnalyzer(false).GetRegularCode(lines);
+        IdentifierAnalyzer sut = new("", clearedLines);
 
         // act
         sut.Analyze();
@@ -72,8 +73,8 @@ public class Add
     {
         // arrange
         List<string> lines = test1.Split("\n").Select(line => line.Trim()).ToList();
-        List<string> commentLessLines = new CommentLineAnalyzer(false).GetRegularCode(lines);
-        MethodLengthAnalyzer sut = new("", commentLessLines);
+        ClearedLines clearedLines = new CommentLineAnalyzer(false).GetRegularCode(lines);
+        MethodLengthAnalyzer sut = new("", clearedLines);
 
         // act
         sut.Analyze();

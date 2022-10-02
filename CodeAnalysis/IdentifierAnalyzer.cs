@@ -5,18 +5,18 @@ namespace LineCounter;
 public class IdentifierAnalyzer
 {
     private readonly string _filename;
-    private readonly List<string> _lines;
+    private readonly IReadOnlyList<string> _lines;
     private readonly FileCharacteristics _characteristics;
 
     private int MethodLevel => _characteristics.MethodLevel;
 
     private int _indentationLevel;
 
-    public IdentifierAnalyzer(string filename, List<string> lines)
+    public IdentifierAnalyzer(string filename, ClearedLines clearedLines)
     {
         _filename = filename;
-        _lines = lines;
-        _characteristics = new FileCharacteristics(lines);
+        _lines = clearedLines.Lines;
+        _characteristics = new FileCharacteristics(clearedLines);
     }
 
     public void Analyze()

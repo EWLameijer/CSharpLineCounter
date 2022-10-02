@@ -4,7 +4,7 @@ namespace LineCounter;
 
 public class MethodLengthAnalyzer
 {
-    private readonly List<string> _lines;
+    private readonly IReadOnlyList<string> _lines;
     private int indentationLevel = 0;
     private int? lastBlankLineIndex = null;
     private int? methodStartIndex = null;
@@ -13,11 +13,11 @@ public class MethodLengthAnalyzer
 
     private int MethodLevel() => _characteristics.MethodLevel - 1;
 
-    public MethodLengthAnalyzer(string filename, List<string> lines)
+    public MethodLengthAnalyzer(string filename, ClearedLines clearedLines)
     {
         _filename = filename;
-        _lines = lines;
-        _characteristics = new FileCharacteristics(lines);
+        _lines = clearedLines.Lines;
+        _characteristics = new FileCharacteristics(clearedLines);
     }
 
     public void Analyze()

@@ -14,20 +14,20 @@ internal static class FileProcessor
         new Reporter().Report(filename, report);
 
         // Ideally, create a version that strips out comment lines
-        List<string> commentLessLines = new CommentLineAnalyzer(false).GetRegularCode(lines);
+        ClearedLines clearedLines = new CommentLineAnalyzer(false).GetRegularCode(lines);
 
-        IdentifierAnalyzer identifierAnalyzer = new(filename, commentLessLines);
+        IdentifierAnalyzer identifierAnalyzer = new(filename, clearedLines);
         identifierAnalyzer.Analyze();
 
         Console.WriteLine("---");
-        AnalyzeMethodLength(filename, commentLessLines);
+        AnalyzeMethodLength(filename, clearedLines);
         Console.WriteLine();
         return report;
     }
 
-    private static void AnalyzeMethodLength(string filename, List<string> lines)
+    private static void AnalyzeMethodLength(string filename, ClearedLines clearedLines)
     {
-        MethodLengthAnalyzer methodLengthAnal = new(filename, lines);
+        MethodLengthAnalyzer methodLengthAnal = new(filename, clearedLines);
         methodLengthAnal.Analyze();
     }
 }
