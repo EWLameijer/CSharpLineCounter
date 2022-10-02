@@ -1,0 +1,28 @@
+﻿Bugs/features
+
+// project 1: hunt wrongly cased names!
+
+
+
+// HALF_DONE: can collect comments, finding commented-out-code should now be possible.
+
+// DONE:VAARSUVIUS
+ga werken aan te lange methodes: methode-rapport!
+
+Analyseer brace-depth: 
+0 = outside class
+1 = inside class 
+if depth ==1 
+
+15 lines of code, starting with { .. so long parameter lists do not count
+chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.softwareimprovementgroup.com/wp-content/uploads/Building_Maintainable_Software_C_Sharp_SIG.compressed.pdf
+
+public void Start()
+{
+	if (inProgress)
+	{
+		return;
+	}
+	inProgress = true;
+}
+== 7 lines
