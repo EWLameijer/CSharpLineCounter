@@ -46,7 +46,7 @@ public class IdentifierAnalyzer
         int assignIndex = components.IndexOf("=");
         if (assignIndex < 0) return;
         string identifier = components[assignIndex - 1];
-        if (identifier == "}") return; // property!  
+        if (identifier == "}") return; // property!
         if (!StartsWithRightCharacter(components, identifier))
             WarningRepo.Warnings.Add($"Invalid field name {identifier} in {_filename}.");
     }
@@ -67,7 +67,6 @@ public class IdentifierAnalyzer
 
     private bool StartsWithRightCharacter(List<string> components, string identifier)
     {
-
         bool shouldStartWithCapital = components.Contains("const") ||
             components.Contains("public") || components.Contains("protected");
         char startCh = identifier[0];
