@@ -83,5 +83,30 @@ public class Add
         Assert.Single(WarningRepo.Warnings);
     }
 
+    private const string ParameterCheck = @"
+namespace LineCounter;
+
+internal static class FileProcessor
+{
+    public static LineReport Process(string Filepath)
+    {
+    }
+}";
+
     // TEST: parameter-name-check seems broken?
+    [Fact]
+    public void Parameter_naming_violations_should_be_reported()
+    {
+        // arrange
+        List<string> lines = ParameterCheck.Split("\n").Select(line => line.Trim()).ToList();
+        ClearedLines clearedLines = new CommentLineAnalyzer(false).GetRegularCode(lines);
+        IdentifierAnalyzer sut = new("", clearedLines);
+
+        // act
+        sut.Analyze();
+
+        // assert
+        Assert.Single(WarningRepo.Warnings);
+    }
+
 }
