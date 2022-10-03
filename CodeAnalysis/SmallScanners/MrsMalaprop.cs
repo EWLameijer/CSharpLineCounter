@@ -1,4 +1,5 @@
-﻿using LineCounter;
+﻿using CodeAnalysis.DTOs;
+using LineCounter;
 
 namespace CodeAnalysis.SmallScanners;
 
@@ -6,13 +7,13 @@ public class MrsMalaprop
 {
     private readonly string _filename;
     private readonly IReadOnlyList<string> _lines;
-    private readonly WarningRepo _warningRepo;
+    private readonly LineReport _report;
 
-    public MrsMalaprop(string filename, ClearedLines clearedLines, WarningRepo warningRepo)
+    public MrsMalaprop(FileData fileData, LineReport report)
     {
-        _filename = filename;
-        _lines = clearedLines.Lines;
-        _warningRepo = warningRepo;
+        _filename = fileData.Filename;
+        _lines = fileData.ClearedLines.Lines;
+        _report = report;
     }
 
     public void Analyze()
@@ -24,7 +25,7 @@ public class MrsMalaprop
             {
                 int index = line.IndexOf(malaprop);
                 if (index >= 0 && ProperBoundaries(line, malaprop, index))
-                    _warningRepo.Warnings.Add(
+                    _report.Warnings.Add(
                             $"In {_filename} use regular type instead of '{malaprop}'");
             }
         }

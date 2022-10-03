@@ -37,16 +37,18 @@ public class Reporter
         Console.WriteLine($"Lines of code:       {_codeLines}");
     }
 
-    public static void FinalReport(List<LineReport> reports, WarningRepo warningRepo)
+    public static void FinalReport(List<LineReport> reports)
     {
         Console.WriteLine();
         new Reporter().Report("TOTAL:", reports.ToArray());
         Console.WriteLine();
         Console.WriteLine("Comments - check for commented-out code!");
-        foreach (string line in warningRepo.Comments) Console.WriteLine(line);
+        List<string> allComments = reports.SelectMany(r => r.Comments).ToList();
+        foreach (string line in allComments) Console.WriteLine(line);
         Console.WriteLine();
         Console.WriteLine("WARNINGS: please check and possibly address these!");
-        foreach (string line in warningRepo.Warnings) Console.WriteLine(line);
-        Console.WriteLine($"--END OF WARNINGS: total is {warningRepo.Warnings.Count} warnings.");
+        List<string> allWarnings = reports.SelectMany(r => r.Warnings).ToList();
+        foreach (string line in allWarnings) Console.WriteLine(line);
+        Console.WriteLine($"--END OF WARNINGS: total is {allWarnings.Count} warnings.");
     }
 }

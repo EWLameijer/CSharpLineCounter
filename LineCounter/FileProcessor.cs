@@ -1,4 +1,5 @@
 ﻿using CodeAnalysis;
+using CodeAnalysis.DTOs;
 using CodeAnalysis.SmallScanners;
 
 namespace LineCounter;
@@ -9,51 +10,52 @@ internal static class FileProcessor
     {
         List<string> rawLines = File.OpenText(filepath).ReadToEnd().Split("\n").ToList();
         string filename = Path.GetFileName(filepath);
-        WarningRepo warningRepo = new();
-        ScanLineLengths(filename, rawLines, warningRepo);
-        List<string> lines = rawLines.Select(line => line.Trim()).ToList();
 
+        List<string> lines = rawLines.Select(line => line.Trim()).ToList();
         Analyzer analyzer = new(filepath);
         LineReport report = analyzer.Analyze();
+        ScanLineLengths(filename, rawLines, report);
+
         new Reporter().Report(filename, report);
 
         // Ideally, create a version that strips out comment lines
 
-        ClearedLines clearedLines = new CommentLineAnalyzer(false, warningRepo).GetRegularCode(lines);
-
-        DelayedFeedbackAnalyzers(filename, clearedLines, warningRepo);
-
-        Console.WriteLine("---");
-        AnalyzeMethodLength(filename, clearedLines, warningRepo);
-        Console.WriteLine();
+        PerformAdvancedAnalysis(filename, lines, report);
         return report;
     }
 
-    private static void ScanLineLengths(string filename, List<string> rawLines,
-        WarningRepo warningRepo)
+    private static void PerformAdvancedAnalysis(string Filename, List<string> lines, LineReport report)
+    {
+        ClearedLines clearedLines = new CommentLineAnalyzer(report).GetRegularCode(lines);
+        FileData fileData = new(Filename, clearedLines);
+        DelayedFeedbackAnalyzers(fileData, report);
+        Console.WriteLine("---");
+        AnalyzeMethodLength(fileData, report);
+        Console.WriteLine();
+    }
+
+    private static void ScanLineLengths(string filename, List<string> rawLines, LineReport report)
     {
         const int MaxLineLength = 120;
         foreach (string rawLine in rawLines)
         {
             if (rawLine.Length > MaxLineLength)
-                warningRepo.Warnings.Add($"Too long line in {filename}: {rawLine.Trim()}");
+                report.Warnings.Add($"Too long line in {filename}: {rawLine.Trim()}");
         }
     }
 
-    private static void DelayedFeedbackAnalyzers(string filename, ClearedLines clearedLines,
-        WarningRepo warningRepo)
+    private static void DelayedFeedbackAnalyzers(FileData fileData, LineReport report)
     {
-        IdentifierAnalyzer identifierAnalyzer = new(filename, clearedLines, warningRepo);
+        IdentifierAnalyzer identifierAnalyzer = new(fileData, report);
         identifierAnalyzer.Analyze();
 
-        MrsMalaprop malaprop = new(filename, clearedLines, warningRepo);
+        MrsMalaprop malaprop = new(fileData, report);
         malaprop.Analyze();
     }
 
-    private static void AnalyzeMethodLength(string filename, ClearedLines clearedLines,
-        WarningRepo warningRepo)
+    private static void AnalyzeMethodLength(FileData fileData, LineReport report)
     {
-        MethodLengthAnalyzer methodLengthAnal = new(filename, clearedLines, warningRepo);
+        MethodLengthAnalyzer methodLengthAnal = new(fileData, report);
         methodLengthAnal.Analyze();
     }
 }

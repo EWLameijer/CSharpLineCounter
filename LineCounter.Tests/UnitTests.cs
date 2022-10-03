@@ -1,4 +1,5 @@
 using CodeAnalysis;
+using CodeAnalysis.DTOs;
 
 namespace LineCounter.Tests;
 
@@ -58,15 +59,16 @@ public class Add
     {
         // arrange
         List<string> lines = Test1.Split("\n").Select(line => line.Trim()).ToList();
-        WarningRepo warningRepo = new();
-        ClearedLines clearedLines = new CommentLineAnalyzer(false, warningRepo).GetRegularCode(lines);
-        IdentifierAnalyzer sut = new("", clearedLines, warningRepo);
+        LineReport report = new(lines);
+        ClearedLines clearedLines = new CommentLineAnalyzer(report).GetRegularCode(lines);
+        FileData fileData = new("testfile1.cs", clearedLines);
+        IdentifierAnalyzer sut = new(fileData, report);
 
         // act
         sut.Analyze();
 
         // assert
-        Assert.Empty(warningRepo.Warnings);
+        Assert.Empty(report.Warnings);
     }
 
     [Fact]
@@ -74,15 +76,16 @@ public class Add
     {
         // arrange
         List<string> lines = Test1.Split("\n").Select(line => line.Trim()).ToList();
-        WarningRepo warningRepo = new();
-        ClearedLines clearedLines = new CommentLineAnalyzer(false, warningRepo).GetRegularCode(lines);
-        MethodLengthAnalyzer sut = new("", clearedLines);
+        LineReport report = new(lines);
+        ClearedLines clearedLines = new CommentLineAnalyzer().GetRegularCode(lines);
+        FileData fileData = new("testfile2.cs", clearedLines);
+        MethodLengthAnalyzer sut = new(fileData, report);
 
         // act
         sut.Analyze();
 
         // assert
-        Assert.Single(warningRepo.Warnings);
+        Assert.Single(report.Warnings);
     }
 
     private const string ParameterCheck = @"
@@ -101,15 +104,15 @@ internal static class FileProcessor
     {
         // arrange
         List<string> lines = ParameterCheck.Split("\n").Select(line => line.Trim()).ToList();
-        WarningRepo warningRepo = new();
-        ClearedLines clearedLines = new CommentLineAnalyzer(false, warningRepo).GetRegularCode(lines);
-        IdentifierAnalyzer sut = new("", clearedLines, warningRepo);
+        LineReport report = new(lines);
+        ClearedLines clearedLines = new CommentLineAnalyzer().GetRegularCode(lines);
+        FileData fileData = new("testfile3.cs", clearedLines);
+        IdentifierAnalyzer sut = new(fileData, report);
 
         // act
         sut.Analyze();
 
         // assert
-        Assert.Single(warningRepo.Warnings);
+        Assert.Single(report.Warnings);
     }
-
 }

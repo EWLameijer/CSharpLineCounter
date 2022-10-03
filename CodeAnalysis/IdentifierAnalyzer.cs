@@ -1,4 +1,5 @@
 ﻿using CodeAnalysis;
+using CodeAnalysis.DTOs;
 
 namespace LineCounter;
 
@@ -7,7 +8,7 @@ public class IdentifierAnalyzer
     private readonly string _filename;
     private readonly IReadOnlyList<string> _lines;
     private readonly FileCharacteristics _characteristics;
-    private readonly WarningRepo _warningRepo;
+    private readonly LineReport _report;
 
     private int MethodLevel => _characteristics.MethodLevel;
 
@@ -15,12 +16,13 @@ public class IdentifierAnalyzer
 
     private int _indentationLevel;
 
-    public IdentifierAnalyzer(string filename, ClearedLines clearedLines, WarningRepo warningRepo)
+    public IdentifierAnalyzer(FileData fileData, LineReport lineReport)
     {
-        _filename = filename;
+        _filename = fileData.Filename;
+        ClearedLines clearedLines = fileData.ClearedLines;
         _lines = clearedLines.Lines;
         _characteristics = new FileCharacteristics(clearedLines);
-        _warningRepo = warningRepo;
+        _report = lineReport;
     }
 
     public void Analyze()
@@ -50,7 +52,7 @@ public class IdentifierAnalyzer
         string identifier = components[assignIndex - 1];
         if (identifier == "}") return; // property!
         if (!StartsWithRightCharacter(components, identifier))
-            _warningRepo.Warnings.Add($"Invalid field name {identifier} in {_filename}.");
+            _report.Warnings.Add($"Invalid field name {identifier} in {_filename}.");
     }
 
     private bool HandleUninitializedField(List<string> components)
@@ -61,7 +63,7 @@ public class IdentifierAnalyzer
             if (identifier.EndsWith(")")) return true;
 
             if (!StartsWithRightCharacter(components, identifier))
-                _warningRepo.Warnings.Add($"Invalid field name {identifier} in {_filename}.");
+                _report.Warnings.Add($"Invalid field name {identifier} in {_filename}.");
         }
 
         return false;
@@ -91,7 +93,7 @@ public class IdentifierAnalyzer
     private int ProcessNonMethodLine(int lineIndex)
     {
         (string line, int newLineIndex) =
-            new CommentLineAnalyzer(false, _warningRepo).FindFirstNonCommentLine(_lines, lineIndex - 1);
+            new CommentLineAnalyzer().FindFirstNonCommentLine(_lines, lineIndex - 1);
         (bool isMethod, int position) = IsMethod(line);
         if (isMethod) newLineIndex = CheckParameters(newLineIndex, position);
 
@@ -141,7 +143,7 @@ public class IdentifierAnalyzer
             List<string> splitParams = param.Split(' ').ToList();
             string parameterName = splitParams[^1].Trim(')');
             if (splitParams.Count >= 2 && !char.IsLower(parameterName[0]) && parameterName != "=>")
-                _warningRepo.Warnings.Add($"Misnamed parameter in {_filename}: {parameterName}");
+                _report.Warnings.Add($"Misnamed parameter in {_filename}: {parameterName}");
         }
     }
 
@@ -163,7 +165,7 @@ public class IdentifierAnalyzer
         List<string> lineElements = line[..endIndex].Split(' ').ToList();
         int assignIndex = lineElements.FindIndex(le => le == "=");
         if (assignIndex == 2 && !char.IsLower(lineElements[1][0]))
-            _warningRepo.Warnings.Add($"Wrong identifier case: {_filename}: {lineElements[1]}.");
+            _report.Warnings.Add($"Wrong identifier case: {_filename}: {lineElements[1]}.");
     }
 
     private static int GetPartUntilStringStartIfAny(string line)

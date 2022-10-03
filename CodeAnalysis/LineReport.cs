@@ -21,10 +21,14 @@ public class LineReport
     // usings + namespace
     public int OpeningLines { get; init; }
 
+    public List<string> Warnings { get; } = new();
+
+    public List<string> Comments { get; } = new();
+
     private bool IsRawStartingLine(string line) =>
         line.StartsWith("using") || line.StartsWith("namespace");
 
-    public LineReport(List<string> lines, bool reportCommentLines, WarningRepo warningRepo)
+    public LineReport(List<string> lines)
     {
         TotalLines = lines.Count;
 
@@ -36,6 +40,6 @@ public class LineReport
         BraceLines = trimmedLines.Count(line => line == "{" || line == "}");
         // multilinecomments: If line STARTS with /*, then whole is comment, until you find a */
         (_initCommentLines, _multiLineCommentLines) =
-            new CommentLineAnalyzer(reportCommentLines, warningRepo).CountCommentLines(trimmedLines);
+            new CommentLineAnalyzer(this).CountCommentLines(trimmedLines);
     }
 }

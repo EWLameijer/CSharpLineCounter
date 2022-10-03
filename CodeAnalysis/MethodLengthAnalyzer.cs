@@ -1,4 +1,5 @@
 ﻿using CodeAnalysis;
+using CodeAnalysis.DTOs;
 
 namespace LineCounter;
 
@@ -10,16 +11,17 @@ public class MethodLengthAnalyzer
     private int? _methodStartIndex = null;
     private readonly string _filename;
     private readonly FileCharacteristics _characteristics;
-    private readonly WarningRepo _warningRepo;
+    private readonly LineReport _report;
 
     private int MethodLevel() => _characteristics.MethodLevel - 1;
 
-    public MethodLengthAnalyzer(string filename, ClearedLines clearedLines, WarningRepo warningRepo)
+    public MethodLengthAnalyzer(FileData fileData, LineReport report)
     {
-        _filename = filename;
+        _filename = fileData.Filename;
+        ClearedLines clearedLines = fileData.ClearedLines;
         _lines = clearedLines.Lines;
         _characteristics = new FileCharacteristics(clearedLines);
-        _warningRepo = warningRepo;
+        _report = report;
     }
 
     public void Analyze()
@@ -66,7 +68,7 @@ public class MethodLengthAnalyzer
             if (line == "") break;
             if (line == "}")
             {
-                _warningRepo.Warnings.Add($"No whitespace in {_filename} before {methodLine}");
+                _report.Warnings.Add($"No whitespace in {_filename} before {methodLine}");
                 break;
             }
             else methodLine = line;
@@ -124,7 +126,7 @@ public class MethodLengthAnalyzer
                 new ArgumentNullException(nameof(lastBlankLineIndex));
         int correctLineIndex = (int)lastBlankLineIndex;
 
-        return new CommentLineAnalyzer(false, _warningRepo).FindFirstNonCommentLine(_lines, correctLineIndex).line;
+        return new CommentLineAnalyzer().FindFirstNonCommentLine(_lines, correctLineIndex).line;
     }
 
     private void AnalyzeCode(string methodName, int? startIndex, int endIndex)
@@ -134,12 +136,12 @@ public class MethodLengthAnalyzer
         List<string> linesToAnalyze = new();
         for (int lineIndex = (int)startIndex; lineIndex <= endIndex; lineIndex++)
             linesToAnalyze.Add(_lines[lineIndex]);
-        LineReport report = new(linesToAnalyze, false);
+        LineReport report = new(linesToAnalyze);
         int codeLines = report.CodeLines + report.BraceLines;
         string message = $"{methodName} {codeLines}";
         if (codeLines > 15)
         {
-            _warningRepo.Warnings.Add($"TOO LONG METHOD: {_filename}/{message}");
+            _report.Warnings.Add($"TOO LONG METHOD: {_filename}/{message}");
         }
         Console.WriteLine(message);
     }
