@@ -49,7 +49,27 @@ public class MethodLengthAnalyzer
     {
         indentationLevel++;
         if (indentationLevel == MethodLevel()) lastBlankLineIndex = i;
-        else if (indentationLevel == MethodLevel() + 1) methodStartIndex = i;
+        else if (indentationLevel == MethodLevel() + 1)
+        {
+            CheckForLackingWhiteSpace(i);
+        }
+    }
+
+    private void CheckForLackingWhiteSpace(int i)
+    {
+        string methodLine = "Unknown method";
+        for (int lineIndexBefore = i - 1; lineIndexBefore >= 0; lineIndexBefore--)
+        {
+            string line = _lines[lineIndexBefore];
+            if (line == "") break;
+            if (line == "}")
+            {
+                WarningRepo.Warnings.Add($"No whitespace in {_filename} before {methodLine}");
+                break;
+            }
+            else methodLine = line;
+        }
+        methodStartIndex = i;
     }
 
     private void HandleClosingBrace(int i)
