@@ -5,9 +5,9 @@ namespace LineCounter;
 public class MethodLengthAnalyzer
 {
     private readonly IReadOnlyList<string> _lines;
-    private int indentationLevel = 0;
-    private int? lastBlankLineIndex = null;
-    private int? methodStartIndex = null;
+    private int _indentationLevel = 0;
+    private int? _lastBlankLineIndex = null;
+    private int? _methodStartIndex = null;
     private readonly string _filename;
     private readonly FileCharacteristics _characteristics;
 
@@ -25,7 +25,7 @@ public class MethodLengthAnalyzer
         for (int i = 0; i < _lines.Count; i++)
         {
             string line = _lines[i];
-            if (line.Length == 0 && indentationLevel == MethodLevel()) lastBlankLineIndex = i;
+            if (line.Length == 0 && _indentationLevel == MethodLevel()) _lastBlankLineIndex = i;
             else
             {
                 HandleBraces(i, line);
@@ -47,9 +47,9 @@ public class MethodLengthAnalyzer
 
     private void HandleOpeningBrace(int i)
     {
-        indentationLevel++;
-        if (indentationLevel == MethodLevel()) lastBlankLineIndex = i;
-        else if (indentationLevel == MethodLevel() + 1)
+        _indentationLevel++;
+        if (_indentationLevel == MethodLevel()) _lastBlankLineIndex = i;
+        else if (_indentationLevel == MethodLevel() + 1)
         {
             CheckForLackingWhiteSpace(i);
         }
@@ -69,17 +69,17 @@ public class MethodLengthAnalyzer
             }
             else methodLine = line;
         }
-        methodStartIndex = i;
+        _methodStartIndex = i;
     }
 
     private void HandleClosingBrace(int i)
     {
-        indentationLevel--;
-        if (indentationLevel == MethodLevel())
+        _indentationLevel--;
+        if (_indentationLevel == MethodLevel())
         {
-            string methodName = GetMethodName(lastBlankLineIndex);
-            if (methodName != "") AnalyzeCode(methodName, methodStartIndex, i);
-            lastBlankLineIndex = i;
+            string methodName = GetMethodName(_lastBlankLineIndex);
+            if (methodName != "") AnalyzeCode(methodName, _methodStartIndex, i);
+            _lastBlankLineIndex = i;
         }
     }
 

@@ -10,6 +10,8 @@ public class IdentifierAnalyzer
 
     private int MethodLevel => _characteristics.MethodLevel;
 
+    private bool IsTopLevelFile => _characteristics.IsTopLevelFile;
+
     private int _indentationLevel;
 
     public IdentifierAnalyzer(string filename, ClearedLines clearedLines)
@@ -27,8 +29,35 @@ public class IdentifierAnalyzer
             if (line.StartsWith("{")) _indentationLevel++;
             else if (line.StartsWith("}")) _indentationLevel--;
             else if (_indentationLevel >= MethodLevel) FindTypingErrors(line);
+            else if (_indentationLevel == MethodLevel - 1) FindFieldErrors(line);
             else if (_indentationLevel > 0) i = ProcessNonMethodLine(i);
         }
+    }
+
+    // TODO: still need: private readonly int initCommentLines;
+    private void FindFieldErrors(string line)
+    {
+        if (IsMethod(line).isMethod) return;
+        List<string> components = line.Split(' ').ToList();
+        int assignIndex = components.IndexOf("=");
+        if (assignIndex >= 0)
+        {
+            string identifier = components[assignIndex - 1];
+            if (identifier == "}") return; // property!  
+            if (!StartsWithRightCharacter(components, identifier))
+                WarningRepo.Warnings.Add($"Invalid field name {identifier} in {_filename}.");
+        }
+    }
+
+    private bool StartsWithRightCharacter(List<string> components, string identifier)
+    {
+
+        bool shouldStartWithCapital = components.Contains("const") ||
+            components.Contains("public") || components.Contains("protected");
+        char startCh = identifier[0];
+        if (shouldStartWithCapital) return char.IsUpper(startCh);
+        else if (IsTopLevelFile) return char.IsLower(startCh);
+        else return startCh == '_';
     }
 
     private sealed class CapitalData

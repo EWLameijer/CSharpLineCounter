@@ -6,7 +6,6 @@ Check problems in code!
 
 1? badly named fields?
 2? methods or properties whose names start with lowercase?
-3? too long lines?
 4? Repeated code?
 
 

@@ -2,8 +2,8 @@
 
 public class LineParser
 {
-    private bool isInString = false;
-    private bool isInEscape = false;
+    private bool _isInString = false;
+    private bool _isInEscape = false;
     private readonly string _line;
 
     public LineParser(string line) => _line = line;
@@ -15,9 +15,9 @@ public class LineParser
             char ch = _line[i];
             bool? returnValue = MultiLineCommentStartsAfter(i);
             if (returnValue != null) return (bool)returnValue;
-            if (ch == '/' && isInString) isInEscape = !isInEscape;
-            if (ch == '"' && !isInEscape) isInString = !isInString;
-            else if (isInString && isInEscape) isInEscape = false;
+            if (ch == '/' && _isInString) _isInEscape = !_isInEscape;
+            if (ch == '"' && !_isInEscape) _isInString = !_isInString;
+            else if (_isInString && _isInEscape) _isInEscape = false;
         }
         return false;
     }
@@ -25,7 +25,7 @@ public class LineParser
     private bool? MultiLineCommentStartsAfter(int i)
     {
         char ch = _line[i];
-        if (ch == '/' && !isInString && i + 1 < _line.Length)
+        if (ch == '/' && !_isInString && i + 1 < _line.Length)
         {
             char nextChar = _line[i + 1];
             if (nextChar == '/') return false;
