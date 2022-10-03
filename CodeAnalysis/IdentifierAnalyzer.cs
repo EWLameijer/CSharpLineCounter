@@ -44,7 +44,8 @@ public class IdentifierAnalyzer
 
     private int ProcessNonMethodLine(int lineIndex)
     {
-        (string line, int newLineIndex) = new CommentLineAnalyzer(false).FindFirstNonCommentLine(_lines, lineIndex - 1);
+        (string line, int newLineIndex) =
+            new CommentLineAnalyzer(false).FindFirstNonCommentLine(_lines, lineIndex - 1);
         (bool isMethod, int position) = IsMethod(line);
         if (isMethod) newLineIndex = CheckParameters(newLineIndex, position);
 
