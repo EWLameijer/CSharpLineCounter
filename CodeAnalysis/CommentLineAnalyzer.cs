@@ -8,10 +8,12 @@ public class CommentLineAnalyzer
     private int _multiLineCommentLines;
     private int _initCommentLines;
     private readonly List<int> _commentLineIndices = new();
+    private readonly WarningRepo _warningRepo;
 
-    public CommentLineAnalyzer(bool reportCommentLines)
+    public CommentLineAnalyzer(bool reportCommentLines, WarningRepo warningRepo)
     {
         _reportCommentLines = reportCommentLines;
+        _warningRepo = warningRepo;
     }
 
     public (string line, int index) FindFirstNonCommentLine(IReadOnlyList<string> lines, int startIndex)
@@ -59,14 +61,14 @@ public class CommentLineAnalyzer
     {
         _initCommentLines++;
         _commentLineIndices.Add(index);
-        if (_reportCommentLines) WarningRepo.Comments.Add(line);
+        if (_reportCommentLines) _warningRepo.Comments.Add(line);
     }
 
     private void RegisterMultilineComment(string line, int index)
     {
         _multiLineCommentLines++;
         _commentLineIndices.Add(index);
-        if (_reportCommentLines) WarningRepo.Comments.Add(line);
+        if (_reportCommentLines) _warningRepo.Comments.Add(line);
     }
 
     public ClearedLines GetRegularCode(List<string> lines)

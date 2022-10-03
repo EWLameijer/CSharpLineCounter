@@ -58,14 +58,15 @@ public class Add
     {
         // arrange
         List<string> lines = Test1.Split("\n").Select(line => line.Trim()).ToList();
-        ClearedLines clearedLines = new CommentLineAnalyzer(false).GetRegularCode(lines);
-        IdentifierAnalyzer sut = new("", clearedLines);
+        WarningRepo warningRepo = new();
+        ClearedLines clearedLines = new CommentLineAnalyzer(false, warningRepo).GetRegularCode(lines);
+        IdentifierAnalyzer sut = new("", clearedLines, warningRepo);
 
         // act
         sut.Analyze();
 
         // assert
-        Assert.Empty(WarningRepo.Warnings);
+        Assert.Empty(warningRepo.Warnings);
     }
 
     [Fact]
@@ -73,14 +74,15 @@ public class Add
     {
         // arrange
         List<string> lines = Test1.Split("\n").Select(line => line.Trim()).ToList();
-        ClearedLines clearedLines = new CommentLineAnalyzer(false).GetRegularCode(lines);
+        WarningRepo warningRepo = new();
+        ClearedLines clearedLines = new CommentLineAnalyzer(false, warningRepo).GetRegularCode(lines);
         MethodLengthAnalyzer sut = new("", clearedLines);
 
         // act
         sut.Analyze();
 
         // assert
-        Assert.Single(WarningRepo.Warnings);
+        Assert.Single(warningRepo.Warnings);
     }
 
     private const string ParameterCheck = @"
@@ -99,14 +101,15 @@ internal static class FileProcessor
     {
         // arrange
         List<string> lines = ParameterCheck.Split("\n").Select(line => line.Trim()).ToList();
-        ClearedLines clearedLines = new CommentLineAnalyzer(false).GetRegularCode(lines);
-        IdentifierAnalyzer sut = new("", clearedLines);
+        WarningRepo warningRepo = new();
+        ClearedLines clearedLines = new CommentLineAnalyzer(false, warningRepo).GetRegularCode(lines);
+        IdentifierAnalyzer sut = new("", clearedLines, warningRepo);
 
         // act
         sut.Analyze();
 
         // assert
-        Assert.Single(WarningRepo.Warnings);
+        Assert.Single(warningRepo.Warnings);
     }
 
 }

@@ -1,8 +1,8 @@
 ﻿namespace LineCounter;
 
-public static class WarningRepo
+public class WarningRepo
 {
-    public static List<string> Warnings = new();
+    public List<string> Warnings = new();
 
-    public static List<string> Comments = new();
+    public List<string> Comments = new();
 }

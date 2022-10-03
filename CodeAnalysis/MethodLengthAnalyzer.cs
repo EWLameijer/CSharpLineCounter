@@ -10,14 +10,16 @@ public class MethodLengthAnalyzer
     private int? _methodStartIndex = null;
     private readonly string _filename;
     private readonly FileCharacteristics _characteristics;
+    private readonly WarningRepo _warningRepo;
 
     private int MethodLevel() => _characteristics.MethodLevel - 1;
 
-    public MethodLengthAnalyzer(string filename, ClearedLines clearedLines)
+    public MethodLengthAnalyzer(string filename, ClearedLines clearedLines, WarningRepo warningRepo)
     {
         _filename = filename;
         _lines = clearedLines.Lines;
         _characteristics = new FileCharacteristics(clearedLines);
+        _warningRepo = warningRepo;
     }
 
     public void Analyze()
@@ -64,7 +66,7 @@ public class MethodLengthAnalyzer
             if (line == "") break;
             if (line == "}")
             {
-                WarningRepo.Warnings.Add($"No whitespace in {_filename} before {methodLine}");
+                _warningRepo.Warnings.Add($"No whitespace in {_filename} before {methodLine}");
                 break;
             }
             else methodLine = line;
@@ -122,7 +124,7 @@ public class MethodLengthAnalyzer
                 new ArgumentNullException(nameof(lastBlankLineIndex));
         int correctLineIndex = (int)lastBlankLineIndex;
 
-        return new CommentLineAnalyzer(false).FindFirstNonCommentLine(_lines, correctLineIndex).line;
+        return new CommentLineAnalyzer(false, _warningRepo).FindFirstNonCommentLine(_lines, correctLineIndex).line;
     }
 
     private void AnalyzeCode(string methodName, int? startIndex, int endIndex)
@@ -137,7 +139,7 @@ public class MethodLengthAnalyzer
         string message = $"{methodName} {codeLines}";
         if (codeLines > 15)
         {
-            WarningRepo.Warnings.Add($"TOO LONG METHOD: {_filename}/{message}");
+            _warningRepo.Warnings.Add($"TOO LONG METHOD: {_filename}/{message}");
         }
         Console.WriteLine(message);
     }

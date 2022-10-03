@@ -9,9 +9,10 @@ Console.WriteLine();
 IEnumerable<string> relevantFileNames = csFiles.Where(
     fn => !fn.Contains(@"\Debug\") && !fn.Contains(@"\Migrations\") && !fn.Contains(@".Designer.cs"));
 List<LineReport> reports = new();
+WarningRepo warningRepo = new();
 foreach (string relevantFileName in relevantFileNames)
 {
-    LineReport newReport = FileProcessor.Process(relevantFileName);
+    LineReport newReport = new FileProcessor().Process(relevantFileName);
     reports.Add(newReport);
 }
-Reporter.FinalReport(reports);
+Reporter.FinalReport(reports, w);

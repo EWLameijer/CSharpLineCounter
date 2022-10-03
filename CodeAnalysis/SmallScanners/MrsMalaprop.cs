@@ -6,11 +6,13 @@ public class MrsMalaprop
 {
     private readonly string _filename;
     private readonly IReadOnlyList<string> _lines;
+    private readonly WarningRepo _warningRepo;
 
-    public MrsMalaprop(string filename, ClearedLines clearedLines)
+    public MrsMalaprop(string filename, ClearedLines clearedLines, WarningRepo warningRepo)
     {
         _filename = filename;
         _lines = clearedLines.Lines;
+        _warningRepo = warningRepo;
     }
 
     public void Analyze()
@@ -22,7 +24,7 @@ public class MrsMalaprop
             {
                 int index = line.IndexOf(malaprop);
                 if (index >= 0 && ProperBoundaries(line, malaprop, index))
-                    WarningRepo.Warnings.Add(
+                    _warningRepo.Warnings.Add(
                             $"In {_filename} use regular type instead of '{malaprop}'");
             }
         }
