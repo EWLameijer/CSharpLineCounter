@@ -2,12 +2,12 @@
 
 public class Reporter
 {
-    private int totalLines;
-    private int totalCommentLines;
-    private int blankLines;
-    private int braceLines;
-    private int openingLines;
-    private int codeLines;
+    private int _totalLines;
+    private int _totalCommentLines;
+    private int _blankLines;
+    private int _braceLines;
+    private int _openingLines;
+    private int _codeLines;
 
     public void Report(string title, params LineReport[] reports)
     {
@@ -17,24 +17,24 @@ public class Reporter
 
     private void AnalyzeData(LineReport[] reports)
     {
-        totalLines = reports.Sum(r => r.TotalLines);
-        totalCommentLines = reports.Sum(r => r.TotalCommentLines);
+        _totalLines = reports.Sum(r => r.TotalLines);
+        _totalCommentLines = reports.Sum(r => r.TotalCommentLines);
         int nonBlankLines = reports.Sum(r => r.NonBlankLines);
-        blankLines = totalLines - nonBlankLines;
-        braceLines = reports.Sum(r => r.BraceLines);
-        openingLines = reports.Sum(r => r.OpeningLines);
-        codeLines = reports.Sum(r => r.CodeLines);
+        _blankLines = _totalLines - nonBlankLines;
+        _braceLines = reports.Sum(r => r.BraceLines);
+        _openingLines = reports.Sum(r => r.OpeningLines);
+        _codeLines = reports.Sum(r => r.CodeLines);
     }
 
     private void ReportData(string title)
     {
         Console.WriteLine("**" + title);
-        Console.WriteLine($"Total lines:         {totalLines}");
-        Console.WriteLine($"Using dir+namespace: {openingLines}");
-        Console.WriteLine($"Lines of comments:   {totalCommentLines}");
-        Console.WriteLine($"Blank lines:         {blankLines}");
-        Console.WriteLine($"Lines with braces:   {braceLines}");
-        Console.WriteLine($"Lines of code:       {codeLines}");
+        Console.WriteLine($"Total lines:         {_totalLines}");
+        Console.WriteLine($"Using dir+namespace: {_openingLines}");
+        Console.WriteLine($"Lines of comments:   {_totalCommentLines}");
+        Console.WriteLine($"Blank lines:         {_blankLines}");
+        Console.WriteLine($"Lines with braces:   {_braceLines}");
+        Console.WriteLine($"Lines of code:       {_codeLines}");
     }
 
     public static void FinalReport(List<LineReport> reports)

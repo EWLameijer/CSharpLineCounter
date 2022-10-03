@@ -37,16 +37,32 @@ public class IdentifierAnalyzer
     // TODO: still need: private readonly int initCommentLines;
     private void FindFieldErrors(string line)
     {
+        if (IsTopLevelFile) return;
         if (IsMethod(line).isMethod) return;
         List<string> components = line.Split(' ').ToList();
+        if (components.Contains("namespace") || components.Contains("using") ||
+            components.Contains("class") || components.Contains("record")) return;
+        if (HandleUninitializedField(components)) return;
         int assignIndex = components.IndexOf("=");
-        if (assignIndex >= 0)
+        if (assignIndex < 0) return;
+        string identifier = components[assignIndex - 1];
+        if (identifier == "}") return; // property!  
+        if (!StartsWithRightCharacter(components, identifier))
+            WarningRepo.Warnings.Add($"Invalid field name {identifier} in {_filename}.");
+    }
+
+    private bool HandleUninitializedField(List<string> components)
+    {
+        if (components.Count is 2 or 3 or 4)
         {
-            string identifier = components[assignIndex - 1];
-            if (identifier == "}") return; // property!  
+            string identifier = components[^1];
+            if (identifier.EndsWith(")")) return true;
+
             if (!StartsWithRightCharacter(components, identifier))
                 WarningRepo.Warnings.Add($"Invalid field name {identifier} in {_filename}.");
         }
+
+        return false;
     }
 
     private bool StartsWithRightCharacter(List<string> components, string identifier)
@@ -56,8 +72,8 @@ public class IdentifierAnalyzer
             components.Contains("public") || components.Contains("protected");
         char startCh = identifier[0];
         if (shouldStartWithCapital) return char.IsUpper(startCh);
-        else if (IsTopLevelFile) return char.IsLower(startCh);
-        else return startCh == '_';
+        if (IsTopLevelFile) return char.IsLower(startCh);
+        return startCh == '_';
     }
 
     private sealed class CapitalData
@@ -140,6 +156,7 @@ public class IdentifierAnalyzer
 
     private void FindTypingErrors(string line)
     {
+        if (line.StartsWith("(")) return; // cannot handle tuples yet
         int endIndex = GetPartUntilStringStartIfAny(line);
         if (endIndex < 1) return;
         List<string> lineElements = line[..endIndex].Split(' ').ToList();

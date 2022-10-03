@@ -6,11 +6,11 @@ public class LineReport
 {
     public int NonBlankLines { get; init; }
 
-    private readonly int initCommentLines;
+    private readonly int _initCommentLines;
 
-    private readonly int multiLineCommentLines;
+    private readonly int _multiLineCommentLines;
 
-    public int TotalCommentLines => initCommentLines + multiLineCommentLines;
+    public int TotalCommentLines => _initCommentLines + _multiLineCommentLines;
 
     public int CodeLines => NonBlankLines - TotalCommentLines - BraceLines - OpeningLines;
 
@@ -36,7 +36,7 @@ public class LineReport
         BraceLines = trimmedLines.Count(line => line == "{" || line == "}");
 
         // multilinecomments: If line STARTS with /*, then whole is comment, until you find a */
-        (initCommentLines, multiLineCommentLines) =
+        (_initCommentLines, _multiLineCommentLines) =
             new CommentLineAnalyzer(reportCommentLines).CountCommentLines(trimmedLines);
     }
 }
