@@ -4,7 +4,7 @@ namespace LineCounter.Tests;
 
 public class UnitTests
 {
-    private const string test1 = @"using System.Data.SqlClient;
+    private const string Test1 = @"using System.Data.SqlClient;
 
 namespace PhoneServiceTests;
 
@@ -57,7 +57,7 @@ public class Add
     public void IdentifierDetector_should_not_report_in_string_types()
     {
         // arrange
-        List<string> lines = test1.Split("\n").Select(line => line.Trim()).ToList();
+        List<string> lines = Test1.Split("\n").Select(line => line.Trim()).ToList();
         ClearedLines clearedLines = new CommentLineAnalyzer(false).GetRegularCode(lines);
         IdentifierAnalyzer sut = new("", clearedLines);
 
@@ -72,7 +72,7 @@ public class Add
     public void MethodLengthAnalyzer_should_report_long_unittests_too()
     {
         // arrange
-        List<string> lines = test1.Split("\n").Select(line => line.Trim()).ToList();
+        List<string> lines = Test1.Split("\n").Select(line => line.Trim()).ToList();
         ClearedLines clearedLines = new CommentLineAnalyzer(false).GetRegularCode(lines);
         MethodLengthAnalyzer sut = new("", clearedLines);
 

@@ -47,6 +47,6 @@ public class Reporter
         Console.WriteLine();
         Console.WriteLine("WARNINGS: please check and possibly address these!");
         foreach (string line in WarningRepo.Warnings) Console.WriteLine(line);
-        Console.WriteLine("--END OF WARNINGS");
+        Console.WriteLine($"--END OF WARNINGS: total is {WarningRepo.Warnings.Count} warnings.");
     }
 }
