@@ -34,7 +34,7 @@ public class IdentifierAnalyzer
             else if (line.StartsWith("}")) _indentationLevel--;
             else if (_indentationLevel >= MethodLevel) FindTypingErrors(line);
             else if (_indentationLevel == MethodLevel - 1) FindFieldErrors(line);
-            else if (_indentationLevel > 0) i = ProcessNonMethodLine(i);
+            if (_indentationLevel == MethodLevel - 1) i = ProcessNonMethodLine(i);
         }
     }
 

@@ -24,10 +24,10 @@ internal static class FileProcessor
         return report;
     }
 
-    private static void PerformAdvancedAnalysis(string Filename, List<string> lines, LineReport report)
+    private static void PerformAdvancedAnalysis(string filename, List<string> lines, LineReport report)
     {
         ClearedLines clearedLines = new CommentLineAnalyzer(report).GetRegularCode(lines);
-        FileData fileData = new(Filename, clearedLines);
+        FileData fileData = new(filename, clearedLines);
         DelayedFeedbackAnalyzers(fileData, report);
         Console.WriteLine("---");
         AnalyzeMethodLength(fileData, report);
