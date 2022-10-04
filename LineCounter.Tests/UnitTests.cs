@@ -133,7 +133,7 @@ foreach (string relevantFileName in relevantFileNames)
 }
 Reporter.FinalReport(reports);";
 
-    /// Misnamed parameter in Program.cs: ");" 
+    /// Misnamed parameter in Program.cs: ");"
     [Fact]
     public void Program_cs_should_be_analyzed_properly()
     {
@@ -161,8 +161,8 @@ public class LineReport
 {
     private bool IsRawStartingLine(string line) =>
         line.StartsWith(""using"") || line.StartsWith(""namespace"");
-
 }";
+
     [Fact]
     public void Expression_bodied_methods_should_be_analyzed_properly()
     {
@@ -314,5 +314,4 @@ public class CommentLineAnalyzer
         // assert
         Assert.Single(report.Warnings);
     }
-
 }

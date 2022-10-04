@@ -7,7 +7,6 @@ public class CommentLineAnalyzer
 {
     private int _multiLineCommentLines;
     private int _initCommentLines;
-    private readonly List<int> _commentLineIndices = new();
     private readonly LineReport? _report;
 
     public CommentLineAnalyzer(LineReport? report = null)
@@ -34,6 +33,7 @@ public class CommentLineAnalyzer
         {
             inMultiLineComment = UpdateCommentLineCount(lines[i], i, inMultiLineComment);
         }
+
         return (_initCommentLines, _multiLineCommentLines);
     }
 
@@ -59,14 +59,12 @@ public class CommentLineAnalyzer
     private void RegisterLineComment(string line, int index)
     {
         _initCommentLines++;
-        _commentLineIndices.Add(index);
         _report?.Comments.Add(line);
     }
 
     private void RegisterMultilineComment(string line, int index)
     {
         _multiLineCommentLines++;
-        _commentLineIndices.Add(index);
         _report?.Comments.Add(line);
     }
 
@@ -110,17 +108,21 @@ public class CommentLineAnalyzer
                 {
                     if (ch == '"') inString = true;
                     if (ch == '\'') inCharString = true;
+
                     if (ch == '/' && i + 1 < lineLength)
                     {
                         if (line[i + 1] == '/') break; // line comment
                         if (line[i + 1] == '*') inBlockComment = true;
+                        else result.Append(ch);
                     }
                     else result.Append(ch);
                 }
             }
+
+            if (inString) result.Append("someString");
             result.Append('\n');
         }
-        List<string> currentLines = result.ToString().Split("\n").ToList();
+        List<string> currentLines = result.ToString().Split("\n").Select(line => line.Trim()).ToList();
         List<string> withoutAnnotations = currentLines.Where(line => !line.StartsWith("[")).ToList();
         return new ClearedLines { Lines = withoutAnnotations };
     }
