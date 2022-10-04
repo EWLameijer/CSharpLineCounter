@@ -86,21 +86,23 @@ public class CommentLineAnalyzer
                 }
                 else if (inString)
                 {
-                    if (ch == '\\') inStringEscape = !inStringEscape; else inStringEscape = false;
-                    if (ch == '"' && !inStringEscape)
+                    if (ch == '\\') inStringEscape = !inStringEscape;
+                    else if (ch == '"' && !inStringEscape)
                     {
                         inString = false;
                         result.Append('"');
                     }
+                    else inStringEscape = false;
                 }
                 else if (inCharString)
                 {
-                    if (ch == '\\') inStringEscape = !inStringEscape; else inStringEscape = false;
-                    if (ch == '\'' && !inStringEscape)
+                    if (ch == '\\') inStringEscape = !inStringEscape;
+                    else if (ch == '\'' && !inStringEscape)
                     {
                         inCharString = false;
                         result.Append('\'');
                     }
+                    else inStringEscape = false;
                 }
                 else
                 {
