@@ -23,7 +23,7 @@ public class CommentLineAnalyzer
         do
         {
             index++;
-            isCommentLine = UpdateCommentLineCount(lines[index], index, isCommentLine);
+            isCommentLine = UpdateCommentLineCount(lines[index], isCommentLine);
         } while (isCommentLine);
 
         return (lines[index], index);
@@ -34,23 +34,18 @@ public class CommentLineAnalyzer
         bool inMultiLineComment = false;
         for (int i = 0; i < lines.Count; i++)
         {
-            inMultiLineComment = UpdateCommentLineCount(lines[i], i, inMultiLineComment);
+            inMultiLineComment = UpdateCommentLineCount(lines[i], inMultiLineComment);
         }
 
         return (_initCommentLines, _multiLineCommentLines);
     }
 
-    private bool UpdateCommentLineCount(string line, int index, bool status)
+    private bool UpdateCommentLineCount(string line, bool status)
     {
-        bool newStatus = status;
+        bool newStatus = status || new LineParser(line).HasActiveMultiLineCommentOpener();
 
-        if (new LineParser(line).HasActiveMultiLineCommentOpener())
-        {
-            newStatus = true;
-        }
-
-        if (newStatus) RegisterMultilineComment(line, index);
-        if (!newStatus && line.StartsWith("//")) RegisterLineComment(line, index);
+        if (newStatus) RegisterMultilineComment(line);
+        if (!newStatus && line.StartsWith("//")) RegisterLineComment(line);
 
         if (line.EndsWith("*/"))
         {
@@ -59,13 +54,13 @@ public class CommentLineAnalyzer
         return newStatus;
     }
 
-    private void RegisterLineComment(string line, int index)
+    private void RegisterLineComment(string line)
     {
         _initCommentLines++;
         _report?.Comments.Add(line);
     }
 
-    private void RegisterMultilineComment(string line, int index)
+    private void RegisterMultilineComment(string line)
     {
         _multiLineCommentLines++;
         _report?.Comments.Add(line);

@@ -13,6 +13,18 @@ NEXT: 10 Roslyn,
 10 Antlr 
 10 coding. (evening?)
 
+Coding:
+1) a) fix method length bug GetRegularCode (perhaps first simplify to state machine,
+   that failing, print code?)
+   b) run unit tests
+   c) run Thijmen, Tamara, Ruben + 2 others (make batch file?)
+   d) all clear: commit and make release
+
+2 a) Fix {} from record in FountainOfObjects 
+   b) run unit tests
+   c) run Thijmen, Tamara, Ruben + 2 others
+   d) all clear: commit and make release
+ 
 1? badly named fields?
 2? methods or properties whose names start with lowercase?
 4? Repeated code?
