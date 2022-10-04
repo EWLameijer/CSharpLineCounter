@@ -150,4 +150,34 @@ Reporter.FinalReport(reports);";
         // assert
         Assert.Empty(report.Warnings);
     }
+
+    // Invalid field name line.StartsWith("namespace"); in LineReport.cs.
+    private const string ExpressionBodiedError = @"
+using CodeAnalysis;
+
+namespace LineCounter;
+
+public class LineReport
+{
+    private bool IsRawStartingLine(string line) =>
+        line.StartsWith(""using"") || line.StartsWith(""namespace"");
+
+}";
+    [Fact]
+    public void Expression_bodied_methods_should_be_analyzed_properly()
+    {
+        // arrange
+        List<string> lines = ExpressionBodiedError.Split("\n").Select(line => line.Trim()).ToList();
+        LineReport report = new(lines);
+        ClearedLines clearedLines = new CommentLineAnalyzer().GetRegularCode(lines);
+        FileData fileData = new("testfile5.cs", clearedLines);
+        IdentifierAnalyzer sut = new(fileData, report);
+
+        // act
+        sut.Analyze();
+
+        // assert
+        Assert.Empty(report.Warnings);
+    }
+
 }

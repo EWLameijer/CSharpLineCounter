@@ -62,7 +62,7 @@ public class IdentifierAnalyzer
         if (components.Count is 2 or 3 or 4)
         {
             string identifier = components[^1];
-            if (identifier.EndsWith(")")) return true;
+            if (identifier.EndsWith(")") || identifier.EndsWith(");")) return true;
 
             if (!StartsWithRightCharacter(components, identifier))
                 _report.Warnings.Add($"Invalid field name {identifier} in {_filename}.");
