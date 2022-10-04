@@ -98,7 +98,6 @@ internal static class FileProcessor
     }
 }";
 
-    // TEST: parameter-name-check seems broken?
     [Fact]
     public void Parameter_naming_violations_should_be_reported()
     {
@@ -114,5 +113,41 @@ internal static class FileProcessor
 
         // assert
         Assert.Single(report.Warnings);
+    }
+
+    private const string ProgramCsTest = @"using LineCounter;
+
+Console.Write(""Geef de naam van de directory waarvan je de code-regels wilt tellen: "");
+string pathname = Console.ReadLine()!;
+
+List<string> csFiles = Directory.GetFiles(pathname, ""*.cs"", SearchOption.AllDirectories).ToList();
+csFiles.ForEach(Console.WriteLine);
+Console.WriteLine();
+IEnumerable<string> relevantFileNames = csFiles.Where(
+    fn => !fn.Contains(@""\Debug\"") && !fn.Contains(@""\Migrations\"") && !fn.Contains(@"".Designer.cs""));
+List<LineReport> reports = new();
+foreach (string relevantFileName in relevantFileNames)
+{
+    LineReport newReport = FileProcessor.Process(relevantFileName);
+    reports.Add(newReport);
+}
+Reporter.FinalReport(reports);";
+
+    /// Misnamed parameter in Program.cs: ");" 
+    [Fact]
+    public void Program_cs_should_be_analyzed_properly()
+    {
+        // arrange
+        List<string> lines = ProgramCsTest.Split("\n").Select(line => line.Trim()).ToList();
+        LineReport report = new(lines);
+        ClearedLines clearedLines = new CommentLineAnalyzer().GetRegularCode(lines);
+        FileData fileData = new("testfile4.cs", clearedLines);
+        IdentifierAnalyzer sut = new(fileData, report);
+
+        // act
+        sut.Analyze();
+
+        // assert
+        Assert.Empty(report.Warnings);
     }
 }

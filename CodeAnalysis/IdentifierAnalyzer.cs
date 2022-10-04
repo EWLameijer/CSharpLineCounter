@@ -9,6 +9,7 @@ public class IdentifierAnalyzer
     private readonly IReadOnlyList<string> _lines;
     private readonly FileCharacteristics _characteristics;
     private readonly LineReport _report;
+    private string _className = "";
 
     private int MethodLevel => _characteristics.MethodLevel;
 
@@ -30,6 +31,7 @@ public class IdentifierAnalyzer
         for (int i = 0; i < _lines.Count; i++)
         {
             string line = _lines[i];
+            if (line.StartsWith("class")) _className = line.Split()[1];
             if (line.StartsWith("{")) _indentationLevel++;
             else if (line.StartsWith("}")) _indentationLevel--;
             else if (_indentationLevel >= MethodLevel) FindTypingErrors(line);
@@ -100,7 +102,7 @@ public class IdentifierAnalyzer
         return newLineIndex;
     }
 
-    private static (bool isMethod, int position) IsMethod(string line)
+    private (bool isMethod, int position) IsMethod(string line)
     {
         CapitalData capitalData = new();
         for (int i = 0; i < line.Length; i++)
@@ -110,7 +112,8 @@ public class IdentifierAnalyzer
             if (ch == '=' || ch == '[') break; // against annotations
             if (ch == '(' && capitalData.CapitalUsed)
             {
-                return (true, i);
+                string lineSoFar = line[0..i];
+                return lineSoFar == _className || lineSoFar.Contains(' ') ? (true, i) : (false, 0);
             }
         }
         return (false, 0);
