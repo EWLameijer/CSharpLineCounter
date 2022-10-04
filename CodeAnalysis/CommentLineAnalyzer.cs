@@ -6,7 +6,9 @@ namespace CodeAnalysis;
 public class CommentLineAnalyzer
 {
     private int _multiLineCommentLines;
+
     private int _initCommentLines;
+
     private readonly LineReport? _report;
 
     public CommentLineAnalyzer(LineReport? report = null)
@@ -23,6 +25,7 @@ public class CommentLineAnalyzer
             index++;
             isCommentLine = UpdateCommentLineCount(lines[index], index, isCommentLine);
         } while (isCommentLine);
+
         return (lines[index], index);
     }
 

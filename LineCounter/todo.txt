@@ -7,7 +7,11 @@ Check problems in code!
 
 // van 10
 7:19-29 CODE  = +19 = 21:19=>
-NEXT: 10 Roslyn, 10 CODE 10 Antlr 10 coding. (evening?)
+/? 
+NEXT: 10 Roslyn, 
+10 CODE 
+10 Antlr 
+10 coding. (evening?)
 
 1? badly named fields?
 2? methods or properties whose names start with lowercase?
