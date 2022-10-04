@@ -1,4 +1,5 @@
-﻿using LineCounter;
+﻿using System.Text;
+using LineCounter;
 
 namespace CodeAnalysis;
 
@@ -9,7 +10,7 @@ public class CommentLineAnalyzer
     private readonly List<int> _commentLineIndices = new();
     private readonly LineReport? _report;
 
-    public CommentLineAnalyzer(LineReport report = null)
+    public CommentLineAnalyzer(LineReport? report = null)
     {
         _report = report;
     }
@@ -69,73 +70,59 @@ public class CommentLineAnalyzer
         _report?.Comments.Add(line);
     }
 
-    // basically: you want regular code
-    // So need to parse code:
-    // Save collection of ranges of real code. (so no "" or comments) 
-    // Copy code in those ranges to new lines.
     public ClearedLines GetRegularCode(List<string> lines)
     {
-        /*
-        //CountCommentLines(lines);
-        List<int> linesToFilterOut = new();
-        for (int i = 0; i < lines.Count; i++)
-        {
-            if (lines[i].StartsWith("[")) linesToFilterOut.Add(i);
-        }
-        List<StringCoordinates> stringLines = GetStringLines(lines);
-        foreach (StringCoordinates coords in stringLines)
-        {
-            // single-line-string
-            if (coords.Start.Line == coords.End.Line)
-            {
-                string currentLineContents = lines[coords.Start.Line];
-                lines[coords.Start.Line] = currentLineContents[0..]
-            }
-        }
-        linesToFilterOut.AddRange(_commentLineIndices);
-        return new ClearedLines
-        {
-            Lines = lines.Where((line, index) => !linesToFilterOut.Contains(index)).ToList()
-        };*/
-    }
-
-    private record CodeCoordinate(int Line, int Position);
-
-    private record CodeCoordinates(CodeCoordinate Start, CodeCoordinate End);
-
-    private List<CodeCoordinates> GetCode(List<string> lines)
-    {
-        List<CodeCoordinates> stringCoordinates = new();
-
+        StringBuilder result = new();
+        bool inBlockComment = false; // block comment; line comments are immediately skipped
         bool inString = false;
-        bool inEscape = false;
-        CodeCoordinate stringStart = new(0, 0);
-        CodeCoordinate stringEnd;
-        for (int lineIndex = 0; lineIndex < lines.Count; lineIndex++)
+        bool inCharString = false;
+        bool inStringEscape = false;
+
+        foreach (string line in lines)
         {
-            string line = lines[lineIndex];
-            for (int i = 0; i < line.Length; i++)
+            int lineLength = line.Length;
+            for (int i = 0; i < lineLength; i++)
             {
                 char ch = line[i];
-                if (ch == '"' && !inEscape)
+                if (inBlockComment)
                 {
-                    inString = !inString;
-                    if (inString)
+                    if (ch == '/' && i > 0 && line[i - 1] == '*') inBlockComment = false;
+                }
+                else if (inString)
+                {
+                    if (ch == '\\') inStringEscape = !inStringEscape; else inStringEscape = false;
+                    if (ch == '"' && !inStringEscape)
                     {
-                        stringStart = new CodeCoordinate(lineIndex, i);
-                    }
-                    else
-                    {
-                        stringEnd = new CodeCoordinate(lineIndex, i);
-                        stringCoordinates.Add(new CodeCoordinates(stringStart, stringEnd));
+                        inString = false;
+                        result.Append('"');
                     }
                 }
-                if (ch == '\\' && inString) inEscape = !inEscape;
-                else inEscape = false;
-
+                else if (inCharString)
+                {
+                    if (ch == '\\') inStringEscape = !inStringEscape; else inStringEscape = false;
+                    if (ch == '\'' && !inStringEscape)
+                    {
+                        inCharString = false;
+                        result.Append('\'');
+                    }
+                }
+                else
+                {
+                    if (ch == '"') inString = true;
+                    if (ch == '\'') inCharString = true;
+                    if (ch == '/' && i + 1 < lineLength)
+                    {
+                        if (line[i + 1] == '/') break; // line comment
+                        if (line[i + 1] == '*') inBlockComment = true;
+                    }
+                    else result.Append(ch);
+                }
             }
+            result.Append('\n');
         }
-        return stringCoordinates;
+        List<string> currentLines = result.ToString().Split("\n").ToList();
+        List<string> withoutAnnotations = currentLines.Where(line => !line.StartsWith("[")).ToList();
+        return new ClearedLines { Lines = withoutAnnotations };
     }
 }
 
