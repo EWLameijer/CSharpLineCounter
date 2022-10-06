@@ -68,63 +68,258 @@ public class CommentLineAnalyzer
 
     public ClearedLines GetRegularCode(List<string> lines)
     {
-        StringBuilder result = new();
-        bool inBlockComment = false; // block comment; line comments are immediately skipped
-        bool inString = false;
-        bool inCharString = false;
-        bool inStringEscape = false;
+        List<string> annotationLessLines = lines.Where(line => !IsAnnotation(line)).ToList();
+        return new CommentAndStringRemover(annotationLessLines).Parse();
+    }
 
-        foreach (string line in lines)
+    private bool IsAnnotation(string line)
+    {
+        if (line.Length < 2) return false;
+        return line[0] == '[' && line[^1] == ']';
+    }
+}
+
+internal class TextCollector
+{
+    private readonly StringBuilder _stringBuilder = new();
+
+    public void Add(char ch)
+    {
+        _stringBuilder.Append(ch);
+    }
+
+    public ClearedLines Lines()
+    {
+        return new ClearedLines { Lines = _stringBuilder.ToString().Split('\n').Select(line => line.Trim()).ToList() };
+    }
+}
+
+internal class TextProvider
+{
+    private readonly List<string> _lines;
+    private int _lineIndex; // the index of the line I'm reading NOW
+    private int _charIndex; // the index of the char I'm GOING to read
+    private readonly TextCollector _textCollector;
+
+    public TextProvider(List<string> lines, TextCollector textCollector)
+    {
+        _lines = lines;
+        _lineIndex = 0;
+        _charIndex = 0;
+        _textCollector = textCollector;
+    }
+
+    public char Get()
+    {
+        if (!HasNext()) throw new EndOfStreamException();
+        while (_charIndex == _lines[_lineIndex].Length)
         {
-            int lineLength = line.Length;
-            for (int i = 0; i < lineLength; i++)
-            {
-                char ch = line[i];
-                if (inBlockComment)
-                {
-                    if (ch == '/' && i > 0 && line[i - 1] == '*') inBlockComment = false;
-                }
-                else if (inString)
-                {
-                    if (ch == '\\') inStringEscape = !inStringEscape;
-                    else if (ch == '"' && !inStringEscape)
-                    {
-                        inString = false;
-                        result.Append('"');
-                    }
-                    else inStringEscape = false;
-                }
-                else if (inCharString)
-                {
-                    if (ch == '\\') inStringEscape = !inStringEscape;
-                    else if (ch == '\'' && !inStringEscape)
-                    {
-                        inCharString = false;
-                        result.Append('\'');
-                    }
-                    else inStringEscape = false;
-                }
-                else
-                {
-                    if (ch == '"') inString = true;
-                    if (ch == '\'') inCharString = true;
-
-                    if (ch == '/' && i + 1 < lineLength)
-                    {
-                        if (line[i + 1] == '/') break; // line comment
-                        if (line[i + 1] == '*') inBlockComment = true;
-                        else result.Append(ch);
-                    }
-                    else result.Append(ch);
-                }
-            }
-
-            if (inString) result.Append("someString");
-            result.Append('\n');
+            _lineIndex++;
+            _charIndex = 0;
+            _textCollector.Add('\n');
         }
-        List<string> currentLines = result.ToString().Split("\n").Select(line => line.Trim()).ToList();
-        List<string> withoutAnnotations = currentLines.Where(line => !line.StartsWith("[")).ToList();
-        return new ClearedLines { Lines = withoutAnnotations };
+        char ch = _lines[_lineIndex][_charIndex];
+        _charIndex++;
+        return ch;
+    }
+
+    public char Peek()
+    {
+        if (!HasNext()) throw new EndOfStreamException();
+        int peekLineIndex = _lineIndex;
+        int peekCharIndex = _charIndex;
+        while (_charIndex == _lines[_lineIndex].Length)
+        {
+            peekLineIndex++;
+            peekCharIndex = 0;
+        }
+        return _lines[peekLineIndex][peekCharIndex];
+    }
+
+    public void SkipToEndOfLine() => _charIndex = _lines[_lineIndex].Length;
+
+    public bool HasNext()
+    {
+        if (_charIndex < _lines[_lineIndex].Length) return true;
+        int testCharIndex = 0;
+        int testLineIndex = _lineIndex;
+        do // okay, charIndex = last
+        {
+            testLineIndex++;
+            if (testLineIndex == _lines.Count) return false;
+        } while (testCharIndex == _lines[testLineIndex].Length);
+        return true;
+    }
+}
+
+internal class CommentAndStringRemover
+{
+    private readonly TextProvider _textProvider;
+    private readonly TextCollector _textCollector = new();
+
+    public CommentAndStringRemover(List<string> lines)
+    {
+        _textProvider = new TextProvider(lines, _textCollector);
+    }
+
+    public ClearedLines Parse()
+    {
+        IParserState state = new RegularCodeProcessor();
+        do
+        {
+            state = state.Parse(_textProvider, _textCollector);
+        } while (_textProvider.HasNext());
+        return _textCollector.Lines();
+    }
+}
+
+internal interface IParserState
+{
+    IParserState Parse(TextProvider textProvider, TextCollector textCollector);
+}
+
+internal class StringProcessor : IParserState
+{
+    private bool _isInEscape = false;
+
+    public IParserState Parse(TextProvider textProvider, TextCollector textCollector)
+    {
+        char currentChar = textProvider.Get();
+        if (currentChar == '\\') _isInEscape = !_isInEscape;
+        else if (currentChar == '"' && !_isInEscape)
+        {
+            textCollector.Add(currentChar);
+            return new RegularCodeProcessor();
+        }
+        else _isInEscape = false; // for /n etc
+        return this;
+    }
+}
+
+internal class VerbatimStringProcessor : IParserState
+{
+    private bool _isInEscape = false;
+
+    public IParserState Parse(TextProvider textProvider, TextCollector textCollector)
+    {
+        char currentChar = textProvider.Get();
+        if (currentChar == '"') _isInEscape = !_isInEscape;
+        else if (currentChar == '"' && !_isInEscape)
+        {
+            textCollector.Add(currentChar);
+            return new RegularCodeProcessor();
+        }
+        else _isInEscape = false;
+        return this;
+    }
+}
+
+internal class CharProcessor : IParserState
+{
+    private bool _isInEscape = false;
+
+    public IParserState Parse(TextProvider textProvider, TextCollector textCollector)
+    {
+        char currentChar = textProvider.Get();
+        if (currentChar == '\\') _isInEscape = !_isInEscape;
+        else if (currentChar == '\'' && !_isInEscape)
+        {
+            textCollector.Add(currentChar);
+            return new RegularCodeProcessor();
+        }
+        else _isInEscape = false; // for /n etc
+        return this;
+    }
+}
+
+internal class BlockCommentProcessor : IParserState
+{
+    public IParserState Parse(TextProvider textProvider, TextCollector textCollector)
+    {
+        char currentChar = textProvider.Get();
+        if (currentChar == '*')
+        {
+            char nextChar = textProvider.Peek();
+            if (nextChar == '/')
+            {
+                _ = textProvider.Get(); // skip the '/'
+                return new RegularCodeProcessor();
+            }
+        }
+        return this;
+    }
+}
+
+internal class RegularCodeProcessor : IParserState
+{
+    public IParserState Parse(TextProvider textProvider, TextCollector textCollector)
+    {
+        char currentChar = textProvider.Get();
+        IParserState? newState = currentChar switch
+        {
+            '@' => HandleAt(textProvider, textCollector),
+            '"' => HandleDoubleQuotes(textCollector),
+            '\'' => HandleSingleQuotes(textCollector),
+            '/' => HandleSlash(textProvider),
+            _ => null
+        };
+        if (newState != null) return newState;
+        textCollector.Add(currentChar);
+        return this;
+    }
+
+    private static IParserState HandleSingleQuotes(TextCollector textCollector)
+    {
+        textCollector.Add('\'');
+        return new CharProcessor();
+    }
+
+    private static IParserState HandleDoubleQuotes(TextCollector textCollector)
+    {
+        textCollector.Add('"');
+        return new StringProcessor();
+    }
+
+    private IParserState? HandleSlash(TextProvider textProvider)
+    {
+        char nextChar = textProvider.Peek();
+        if (nextChar == '/')
+        {
+            textProvider.SkipToEndOfLine();
+            return this;
+        }
+        if (nextChar == '*')
+        {
+            return new BlockCommentProcessor();
+        }
+        return null;
+    }
+
+    private IParserState? HandleAt(TextProvider textProvider, TextCollector textCollector)
+    {
+        char nextChar = textProvider.Peek();
+        if (nextChar == '"')
+        {
+            textCollector.Add(nextChar);
+            return new VerbatimStringProcessor();
+        }
+        if (nextChar == '$')
+        {
+            return CheckInterPolVerbaString(textProvider, textCollector);
+        }
+        return null;
+    }
+
+    private VerbatimStringProcessor? CheckInterPolVerbaString(TextProvider textProvider, TextCollector textCollector)
+    {
+        textProvider.Get();
+        char nextChar = textProvider.Peek();
+        if (nextChar == '"')
+        {
+            textCollector.Add(nextChar);
+            return new VerbatimStringProcessor();
+        }
+        return null;
     }
 }
 

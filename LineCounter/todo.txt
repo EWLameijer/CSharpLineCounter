@@ -1,4 +1,12 @@
 ﻿Bugs/features
+
+1) Continue the cycle: build, run unit tests, test self, test others, release
+2) goal 1: also give directory to distinguish between Program.cs and Program.cs
+3) goal 2: add someString to correctly count multiline strings
+4) become resistant against {} records and inner classes
+5) note: POSSIBLE bug with end of block comment split over 2 lines. Is now seen as end, in reality isn't. 
+Likely not super-important, though. But I guess I should work with tokens, not characters.
+
 7:14 => 21:14
 
 Check problems in code!
@@ -8,7 +16,7 @@ Check problems in code!
 // van 10
 7:19-29 CODE  = +19 = 21:19=>
 /? 
-NEXT: 10 Roslyn, 
+NEXT: 10 Roslyn / OK, 
 10 CODE 
 10 Antlr 
 10 coding. (evening?)
@@ -17,12 +25,12 @@ Coding:
 1) a) fix method length bug GetRegularCode (perhaps first simplify to state machine,
    that failing, print code?)
    b) run unit tests
-   c) run Thijmen, Tamara, Ruben + 2 others (make batch file?)
+   c) run 5 test data 
    d) all clear: commit and make release
 
 2 a) Fix {} from record in FountainOfObjects 
    b) run unit tests
-   c) run Thijmen, Tamara, Ruben + 2 others
+   c) run 5 test data
    d) all clear: commit and make release
  
 1? badly named fields?
@@ -55,3 +63,8 @@ public void Start()
 	inProgress = true;
 }
 == 7 lines
+
+@Roslyn
+=> no standard things for things I want in Visual Studio linecheck...
+In https://learn.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/
+// You can learn more about the concepts in the .NET Compiler Platform SDK in these five topics:

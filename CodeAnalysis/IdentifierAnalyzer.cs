@@ -62,7 +62,8 @@ public class IdentifierAnalyzer
         if (components.Count is 2 or 3 or 4)
         {
             string identifier = components[^1];
-            if (identifier.EndsWith(")") || identifier.EndsWith(");")) return true;
+            if (identifier.EndsWith(")") || identifier.EndsWith(");") ||
+                !char.IsLetterOrDigit(identifier[^1])) return true;
 
             if (!StartsWithRightCharacter(components, identifier))
                 _report.Warnings.Add($"Invalid field name {identifier} in {_filename}.");
@@ -167,8 +168,13 @@ public class IdentifierAnalyzer
         if (endIndex < 1) return;
         List<string> lineElements = line[..endIndex].Split(' ').ToList();
         int assignIndex = lineElements.FindIndex(le => le == "=");
-        if (assignIndex == 2 && !char.IsLower(lineElements[1][0]))
+        if (!ReservedWord(lineElements[0]) && assignIndex == 2 && !char.IsLower(lineElements[1][0]))
             _report.Warnings.Add($"Wrong identifier case: {_filename}: {lineElements[1]}.");
+    }
+
+    private bool ReservedWord(string word)
+    {
+        return word == "else";
     }
 
     private static int GetPartUntilStringStartIfAny(string line)
