@@ -9,7 +9,8 @@ internal static class FileProcessor
     public static LineReport Process(string filepath)
     {
         List<string> rawLines = File.OpenText(filepath).ReadToEnd().Split("\n").ToList();
-        string filename = Path.GetFileName(filepath);
+        string dirName = new DirectoryInfo(Path.GetDirectoryName(filepath)!).Name;
+        string filename = $"{dirName}\\{Path.GetFileName(filepath)}";
 
         List<string> lines = rawLines.Select(line => line.Trim()).ToList();
         Analyzer analyzer = new(filepath);
