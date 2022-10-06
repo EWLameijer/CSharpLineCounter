@@ -7,7 +7,8 @@ List<string> csFiles = Directory.GetFiles(pathname, "*.cs", SearchOption.AllDire
 csFiles.ForEach(Console.WriteLine);
 Console.WriteLine();
 IEnumerable<string> relevantFileNames = csFiles.Where(
-    fn => !fn.Contains(@"\Debug\") && !fn.Contains(@"\Migrations\") && !fn.Contains(@".Designer.cs"));
+    fn => !fn.Contains(@"\Debug\") && !fn.Contains(@"\Release\") &&
+    !fn.Contains(@"\Migrations\") && !fn.Contains(@".Designer.cs"));
 List<LineReport> reports = new();
 foreach (string relevantFileName in relevantFileNames)
 {
