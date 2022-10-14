@@ -1,8 +1,8 @@
 ﻿Bugs/features
 
-    public List<Phone> SearchPhone(string input) => new(sqlUtils.GetPhones($"SELECT * FROM phones INNER JOIN brands ON phones.BrandId = brands.Id " +
-        $"WHERE Brand LIKE '%{input}%' OR Type LIKE '%{input}%' OR Description LIKE '%{input}%'"));
+Still not checking for whitespace BEFORE constructor
 
+0123456789012345678901234567890
 
 1) Continue the cycle: build, run unit tests, test self, test others, release
 2) check the release: 

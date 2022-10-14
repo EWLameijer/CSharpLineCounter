@@ -12,6 +12,7 @@ public class MethodLengthAnalyzer
     private readonly string _filename;
     private readonly FileCharacteristics _characteristics;
     private readonly LineReport _report;
+    private string? _className;
 
     private int MethodLevel() => _characteristics.MethodLevel - 1;
 
@@ -29,6 +30,7 @@ public class MethodLengthAnalyzer
         for (int i = 0; i < _lines.Count; i++)
         {
             string line = _lines[i];
+            if (line.StartsWith("class")) _className = line.Split()[1];
             if (line.Length == 0 && _indentationLevel == MethodLevel()) _lastBlankLineIndex = i;
             else
             {
@@ -71,7 +73,11 @@ public class MethodLengthAnalyzer
                 _report.Warnings.Add($"No whitespace in {_filename} before {methodLine}");
                 break;
             }
-            else methodLine = line;
+            else
+            {
+                if (MethodHeaderAnalyzer.IsMethod(line, _className).isMethod) methodLine = line;
+                else break;
+            }
         }
         _methodStartIndex = i;
     }

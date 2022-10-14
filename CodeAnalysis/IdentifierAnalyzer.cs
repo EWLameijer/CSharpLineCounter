@@ -44,7 +44,7 @@ public class IdentifierAnalyzer
     private void FindFieldErrors(string line)
     {
         if (IsTopLevelFile) return;
-        if (IsMethod(line).isMethod) return;
+        if (MethodHeaderAnalyzer.IsMethod(line, _className).isMethod) return;
         List<string> components = line.Split(' ').ToList();
         if (components.Contains("namespace") || components.Contains("using") ||
             components.Contains("class") || components.Contains("record")) return;
@@ -82,12 +82,6 @@ public class IdentifierAnalyzer
         return startCh == '_';
     }
 
-    private sealed class CapitalData
-    {
-        public bool CapitalUsed { get; set; }
-        public int LastCapitalIndex { get; set; }
-    }
-
     /* Can you
      * Do this
      // correctly?
@@ -97,27 +91,10 @@ public class IdentifierAnalyzer
     {
         (string line, int newLineIndex) =
             new CommentLineAnalyzer().FindFirstNonCommentLine(_lines, lineIndex - 1);
-        (bool isMethod, int position) = IsMethod(line);
+        (bool isMethod, int position) = MethodHeaderAnalyzer.IsMethod(line, _className);
         if (isMethod) newLineIndex = CheckParameters(newLineIndex, position);
 
         return newLineIndex;
-    }
-
-    private (bool isMethod, int position) IsMethod(string line)
-    {
-        CapitalData capitalData = new();
-        for (int i = 0; i < line.Length; i++)
-        {
-            char ch = line[i];
-            UpdateCapitalData(capitalData, i, ch);
-            if (ch == '=' || ch == '[') break; // against annotations
-            if (ch == '(' && capitalData.CapitalUsed)
-            {
-                string lineSoFar = line[0..i];
-                return lineSoFar == _className || lineSoFar.Contains(' ') ? (true, i) : (false, 0);
-            }
-        }
-        return (false, 0);
     }
 
     private int CheckParameters(int lineIndex, int position)
@@ -129,14 +106,23 @@ public class IdentifierAnalyzer
             CheckParametersPerLine(lineIndexToTest, position);
             position = 0;
             lineIndexToTest++;
-        } while (!IsEndOfMethodHeader(currentLine));
+        } while (!IsEndOfMethodHeader(currentLine, position));
 
         return lineIndexToTest - 1;
     }
 
-    private static bool IsEndOfMethodHeader(string currentLine) =>
-        currentLine.EndsWith(")") || currentLine.EndsWith("=>")
-        || currentLine.EndsWith(";") || currentLine.Contains("//");
+    private static bool IsEndOfMethodHeader(string currentLine, int position)
+    {
+        int depth = 0;
+        for (int i = position; i < currentLine.Length; i++)
+        {
+            char ch = currentLine[position];
+            if (ch == '(') depth++;
+            if (ch == ')') depth--;
+            if (depth == 0) return true;
+        }
+        return false;
+    }
 
     private void CheckParametersPerLine(int lineIndex, int i)
     {
@@ -148,16 +134,6 @@ public class IdentifierAnalyzer
             string parameterName = splitParams[^1].Trim(')');
             if (splitParams.Count >= 2 && !char.IsLower(parameterName[0]) && parameterName != "=>")
                 _report.Warnings.Add($"Misnamed parameter in {_filename}: {parameterName}");
-        }
-    }
-
-    private static void UpdateCapitalData(CapitalData capitalData, int i, char ch)
-    {
-        if (ch == ' ') capitalData.CapitalUsed = false;
-        if (char.IsUpper(ch) && !capitalData.CapitalUsed)
-        {
-            capitalData.CapitalUsed = true;
-            capitalData.LastCapitalIndex = i;
         }
     }
 
